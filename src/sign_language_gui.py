@@ -131,8 +131,18 @@ class Application:
     def video_loop(self):
         try:
             ok, frame = self.vs.read()
+            if not ok or frame is None:
+                self.panel.imgtk = None
+                self.panel.config(
+                    image="",
+                    text="Waiting for webcam frame... Check that the camera is connected and not in use.",
+                    font=("Arial", 18),
+                    wraplength=400,
+                )
+                return
+
             cv2image = cv2.flip(frame, 1)
-            if cv2image.any:
+            if cv2image is not None:
                 hands = hd.findHands(cv2image, draw=False, flipType=True)
                 cv2image_copy=np.array(cv2image)
                 cv2image = cv2.cvtColor(cv2image, cv2.COLOR_BGR2RGB)
@@ -294,7 +304,7 @@ class Application:
         except Exception:
             print("==", traceback.format_exc())
         finally:
-            self.root.after(1, self.video_loop)
+            self.root.after(30, self.video_loop)
 
     def distance(self,x,y):
         return math.sqrt(((x[0] - y[0]) ** 2) + ((x[1] - y[1]) ** 2))
